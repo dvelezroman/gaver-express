@@ -8,7 +8,7 @@ router.get('/ping', function(req, res, next) {
   res.status(200).json({ status: true, msg: 'Pong...' })
 })
 // POST to twilio client
-router.get('/ws', WhatsappBot.botMain)
+router.post('/ws', WhatsappBot.botMain)
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
