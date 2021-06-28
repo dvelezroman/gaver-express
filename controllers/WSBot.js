@@ -9,7 +9,6 @@ const {
 
 twilio(accountSid, TwilloAuthToken);
 const { MessagingResponse } = twilio.twiml;
-const customsearch = google.customsearch('v1');
 
 /**
  * @class WhatsappBot
