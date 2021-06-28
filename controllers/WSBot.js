@@ -31,4 +31,4 @@ class WhatsappBot {
   }
 }
 
-export default WhatsappBot;
+module.exports = WhatsappBot;
