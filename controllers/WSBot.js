@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-import twilio from 'twilio';
+const dotenv = require('dotenv');
+const twilio = require('twilio')
 dotenv.config();
 
 const {
