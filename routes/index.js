@@ -1,5 +1,5 @@
 var express = require('express');
-const { default: WhatsappBot } = require('../controllers/WSBot');
+const WhatsappBot = require('../controllers/WSBot');
 var router = express.Router();
 
 // GET test json page
