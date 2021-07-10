@@ -2,14 +2,19 @@ const dotenv = require('dotenv');
 const twilio = require('twilio')
 dotenv.config();
 
+const Dialogs = require("../models/dialogFlow")
+const AnswersClass = require("../ddbb/answers")
+
+const AnswersInstance = new AnswersClass()
+
 const {
   SID: accountSid,
-  KEY: TwilloAuthToken
+  KEY: TwilioAuthToken
 } = process.env;
 
-twilio(accountSid, TwilloAuthToken);
+twilio(accountSid, TwilioAuthToken);
 
-const client = new twilio(accountSid, TwilloAuthToken);
+const client = new twilio(accountSid, TwilioAuthToken);
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -34,13 +39,29 @@ class WhatsappBot {
   }
 
   static sendWhatsappMsg(req, res, next) {
-    client.messages.create({
-         from: 'whatsapp:+14155238886',
-         body: 'Hola amiguito...!',
-         to: `whatsapp:${req.body.to}`
-       })
-      .then(message => 
-          res.status(200).json({ status: true, msg: message.sid }));
+    const { to, campaign } = req.body;
+    const dataClient = AnswersInstance.getClientData(to);
+    
+    if (!dataClient || !dataClient[campaign]) {
+      const campaignModel = Dialogs.dialogExample[campaign];
+      const newCampaignData = {
+        [campaign]: { ...campaignModel }
+      }
+      AnswersInstance.saveClientData(to, newCampaignData)
+    }
+
+    const nexQuestionToAsk = AnswersInstance.getNextQuestionToAsk(clientNumber, campaign);
+    if (nexQuestionToAsk) {
+      client.messages.create({
+        from: 'whatsapp:+14155238886',
+        body: nexQuestionToAsk.text,
+        to: `whatsapp:${req.body.to}`
+      })
+     .then(message => 
+         res.status(200).json({ status: true, msg: message.sid }));
+    } else {
+      res.status(200).json({ status: false, msg: "This campaign has been completed already." });
+    }
   }
 }
 
