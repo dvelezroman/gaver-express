@@ -32,33 +32,42 @@ class WhatsappBot {
     const clientPendantCampaign = AnswersInstance.getPendantCampaign(clientNumber);
     let messageToSend = "";
 
-    if (clientPendantCampaign) {
+    if (clientPendantCampaign && !clientPendantCampaign.status) {
       const currentQuestionToAnswer = AnswersInstance.getNextQuestionToAsk(clientNumber, clientPendantCampaign.id);
       if (currentQuestionToAnswer.isLast) {
-        currentQuestionToAnswer.status = "completed";
         clientPendantCampaign.status = true;
+        clientPendantCampaign.flow.final.status = "completed"
         messageToSend = currentQuestionToAnswer.text;
+        AnswersInstance.saveClientDataCampaign(clientNumber, clientPendantCampaign.id, clientPendantCampaign)
       } else {
-        if (typeof answer === currentQuestionToAnswer.type) {
-          if (currentQuestionToAnswer.type === "string" && ["si", "no"].includes(answer.toLowerCase())) {
-            currentQuestionToAnswer.status = "completed";
-            currentQuestionToAnswer.response = answer;
-            messageToSend = currentQuestionToAnswer.text;
-          }
-          if (currentQuestionToAnswer.type === "number" && (answer > 0 && answer < 11)) {
-            currentQuestionToAnswer.status = "completed";
-            currentQuestionToAnswer.response = answer;
-            messageToSend = currentQuestionToAnswer.text;
-          }
-        } else {
-          messageToSend = "La respuesta enviada no es correcta";
-          currentQuestionToAnswer.status = "pendant";
+        if (currentQuestionToAnswer.type === "boolean" && ["si", "no"].includes(answer.toLowerCase())) {
+          currentQuestionToAnswer.status = "completed";
+          currentQuestionToAnswer.response = answer;
+          
         }
+        if (currentQuestionToAnswer.type === "number" && (answer > 0 && answer < 11)) {
+          currentQuestionToAnswer.status = "completed";
+          currentQuestionToAnswer.response = answer;
+          
+        }
+        if (currentQuestionToAnswer.type === "string") {
+          currentQuestionToAnswer.status = "completed";
+          currentQuestionToAnswer.response = answer;
+        }
+        clientPendantCampaign.flow[currentQuestionToAnswer.id] = { ...currentQuestionToAnswer }
+        AnswersInstance.saveClientDataCampaign(clientNumber, clientPendantCampaign.id, clientPendantCampaign)
+        
+        const nextClientPendantCampaign = AnswersInstance.getPendantCampaign(clientNumber);
+        const nextQuestionToAsk = AnswersInstance.getNextQuestionToAsk(clientNumber, clientPendantCampaign.id)
+        nextClientPendantCampaign.flow[nextQuestionToAsk.id] = { ...nextQuestionToAsk }
+        
+        messageToSend = nextQuestionToAsk.text
+        nextQuestionToAsk.status = "pendant"
+        nextClientPendantCampaign.flow[nextQuestionToAsk.id] = {
+          ...nextQuestionToAsk
+        };
+        AnswersInstance.saveClientDataCampaign(clientNumber, nextClientPendantCampaign.id, nextClientPendantCampaign)
       }
-      clientPendantCampaign.flow[currentQuestionToAnswer.id] = {
-        ...currentQuestionToAnswer
-      };
-      AnswersInstance.saveClientDataCampaign(clientNumber, clientPendantCampaign.id, clientPendantCampaign)
     } else {
       messageToSend = "Usted no tiene encuestas pendientes."
     }
@@ -73,37 +82,33 @@ class WhatsappBot {
     }
   }
 
-  static sendWhatsappMsg(req, res, next) {
+  static async sendWhatsappMsg(req, res, next) {
     const { to: clientNumber, campaign } = req.body;
 
     const dataClient = AnswersInstance.getClientData(clientNumber);
-    let clientDataCampaign = AnswersInstance.getClientDataCampaign(clientNumber, campaign);
+    const dataCampaign = AnswersInstance.getClientDataCampaign(clientNumber, campaign);
 
-    if (!dataClient || !clientDataCampaign) {
-      const campaignModel = Dialogs.dialogExample[campaign];
-      clientDataCampaign = { ...campaignModel }
-
+    if (!dataClient) {
       AnswersInstance.saveClientData(clientNumber, campaign)
+    }
+    if (!dataCampaign) {
+      const campaignModel = Dialogs.dialogExample[campaign];
       AnswersInstance.saveClientDataCampaign(clientNumber, campaign, campaignModel)
     }
 
     const nextQuestionToAsk = AnswersInstance.getNextQuestionToAsk(clientNumber, campaign);
-    
-    if (nextQuestionToAsk) {
-      nextQuestionToAsk.status = "pendant";
-      clientDataCampaign.flow[nextQuestionToAsk.id] = { ...nextQuestionToAsk }
-      AnswersInstance.saveClientDataCampaign(clientNumber, campaign, clientDataCampaign);
 
-      client.messages.create({
+    try {
+      const message = await client.messages.create({
         from: 'whatsapp:+14155238886',
         body: nextQuestionToAsk.text,
         to: `whatsapp:+${clientNumber}`
       })
-      .then(message => res.status(200).json({ status: true, msg: message.sid }))
-      .catch(error => {
-        console.log(error.message)
-        return res.status(400).json({ status: false, msg: error.message })
-      });
+      
+      res.status(200).json({ status: true, msg: message.sid })
+    } catch (error) {
+      console.log(error)
+      res.status(400).json({ status: false, msg: error.message })
     }
   }
 }

@@ -32,7 +32,9 @@ module.exports = class AnswersClass {
   }
 
   saveClientDataCampaign (clientNumber, campaign, campaignData) {
-    this.answers[clientNumber][campaign] = { ...campaignData }
+    const clientData = { ...this.answers[clientNumber] };
+    clientData[campaign] = { ...campaignData };
+    this.answers[clientNumber] = { ...clientData };
     this.setContentToFile();
   }
 
@@ -52,7 +54,6 @@ module.exports = class AnswersClass {
 
   getClientDataCampaign (clientNumber, campaign) {
     const clientData = { ...this.answers[clientNumber] };
-    console.log({ clientNumber, campaign, clientData })
     if (clientData && clientData[campaign]) {
       return clientData[campaign];
     }

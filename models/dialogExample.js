@@ -10,7 +10,7 @@ const dialogExample = {
         id: 1,
         text: "En una escala del 1 al 10, con que número calificaría el servicio recibido?",
         type: "number",
-        status: "blank", // "blank", "pendant", "completed"
+        status: "pendant", // "pendant", "completed"
         response: null,
         flow: null,
         isLast: false
@@ -18,8 +18,8 @@ const dialogExample = {
       2: {
         id: 2,
         text: "Recomendaría nuestros servicios a otra persona?",
-        type: "string",
-        status: "blank",
+        type: "boolean",
+        status: "pendant",
         response: null,
         flow: null,
         isLast: false
@@ -28,14 +28,14 @@ const dialogExample = {
         id: 3,
         text: "Desea agregar algún comentario adicional?",
         type: "string",
-        status: "blank",
+        status: "pendant",
         response: null,
         flow: null,
         isLast: false
       },
       final: {
         text: "Gracias, su opinión nos ayuda a mejorar para brindarte un mejor servicio.",
-        status: "blank",
+        status: "pendant",
         isLast: true
       }
     }
