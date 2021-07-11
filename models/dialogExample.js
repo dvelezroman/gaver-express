@@ -1,35 +1,47 @@
 const dialogExample = {
   q1: {
-    text: "Hola ${ClientName}, queremos conocer tu opinion, sobre los servicios recibidos el ${ServiceDate}",
+    id: "q1",
+    text: "Hola, queremos conocer tu opinion, sobre los servicios recibidos.",
     type: "si/no",
     status: false,
     response: null,
     flow: {
       1: {
+        id: 1,
         text: "En una escala del 1 al 10, con que número calificaría el servicio recibido?",
         type: "number",
-        status: false,
+        status: "blank", // "blank", "pendant", "completed"
         response: null,
-        flow: null
+        flow: null,
+        isLast: false
       },
       2: {
+        id: 2,
         text: "Recomendaría nuestros servicios a otra persona?",
-        type: "number",
-        status: false,
+        type: "string",
+        status: "blank",
         response: null,
-        flow: null
+        flow: null,
+        isLast: false
       },
       3: {
+        id: 3,
         text: "Desea agregar algún comentario adicional?",
-        type: "text",
-        status: false,
+        type: "string",
+        status: "blank",
         response: null,
-        flow: null
+        flow: null,
+        isLast: false
       },
-      final: "Gracias ${ClientName}, su opinión nos ayuda a mejorar para brindarte un mejor servicio."
+      final: {
+        text: "Gracias, su opinión nos ayuda a mejorar para brindarte un mejor servicio.",
+        status: "blank",
+        isLast: true
+      }
     }
   },
   q2: {
+    id: "q2",
     text: "Hola ${ClientName}, deseas realizar una consulta?",
     type: 'si/no',
     status: false,
@@ -37,6 +49,7 @@ const dialogExample = {
     flow: null
   },
   q3: {
+    id: "q3",
     text: "Hola ${ClientName}, queremos conocer tu opinión",
     type: "si/no",
     status: false,
@@ -45,6 +58,4 @@ const dialogExample = {
   }
 }
 
-module.exports = {
-  dialogExample
-}
+module.exports = dialogExample
